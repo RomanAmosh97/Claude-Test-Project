@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Site</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">MySite</a>
+      <ul class="nav-links">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="hero" id="home">
+    <h1>Clean. Modern.<br>Ready to build.</h1>
+    <p>A minimal starting point with a sticky nav, smooth hover states, and a responsive layout.</p>
+    <a href="#about" class="btn">Learn more</a>
+  </section>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">&#9881;</div>
+      <h3>Fast by default</h3>
+      <p>No heavy frameworks. Pure HTML and CSS keeps things lightweight and quick to load.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#9998;</div>
+      <h3>Easy to customize</h3>
+      <p>Everything is in one file. Change colors, fonts, and spacing in seconds.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#128241;</div>
+      <h3>Responsive</h3>
+      <p>Looks great on any screen size thanks to CSS Grid and fluid typography.</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <span>&copy; 2024 MySite</span>
+      <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // Highlight active nav link on scroll
+    const sections = document.querySelectorAll('section[id], div[id]');
+    const links = document.querySelectorAll('.nav-links a');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove('active'));
+          const match = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
+          if (match) match.classList.add('active');
+        }
+      });
+    }, { threshold: 0.5 });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+
+</body>
+</html>
