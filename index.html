@@ -3,69 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Site</title>
+  <title>Bookmark Manager</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
   <nav>
     <div class="nav-inner">
-      <a href="#" class="nav-logo">MySite</a>
-      <ul class="nav-links">
-        <li><a href="#home" class="active">Home</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
+      <span class="nav-logo">&#128278; Bookmarks</span>
+      <span class="nav-count" id="nav-count">0 saved</span>
     </div>
   </nav>
 
-  <section class="hero" id="home">
-    <h1>Clean. Modern.<br>Ready to build.</h1>
-    <p>A minimal starting point with a sticky nav, smooth hover states, and a responsive layout.</p>
-    <a href="#about" class="btn">Learn more</a>
-  </section>
+  <main>
+    <section class="form-section">
+      <h2>Add Bookmark</h2>
+      <form id="bookmark-form">
+        <div class="field">
+          <label for="title">Title</label>
+          <input type="text" id="title" placeholder="e.g. GitHub" required />
+        </div>
+        <div class="field">
+          <label for="url">URL</label>
+          <input type="url" id="url" placeholder="https://example.com" required />
+        </div>
+        <div class="field">
+          <label for="category">Category <span class="optional">(optional)</span></label>
+          <input type="text" id="category" placeholder="e.g. Work, Design, News" />
+        </div>
+        <button type="submit" class="btn">Add Bookmark</button>
+      </form>
+    </section>
 
-  <div class="cards">
-    <div class="card">
-      <div class="card-icon">&#9881;</div>
-      <h3>Fast by default</h3>
-      <p>No heavy frameworks. Pure HTML and CSS keeps things lightweight and quick to load.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">&#9998;</div>
-      <h3>Easy to customize</h3>
-      <p>Everything is in one file. Change colors, fonts, and spacing in seconds.</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">&#128241;</div>
-      <h3>Responsive</h3>
-      <p>Looks great on any screen size thanks to CSS Grid and fluid typography.</p>
-    </div>
-  </div>
-
-  <footer>
-    <div class="footer-inner">
-      <span>&copy; 2024 MySite</span>
-      <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
-    </div>
-  </footer>
+    <section class="list-section">
+      <div class="list-header">
+        <h2>Saved Bookmarks</h2>
+        <input type="text" id="search" placeholder="Search..." />
+      </div>
+      <div id="bookmark-list"></div>
+      <p id="empty-state">No bookmarks yet. Add one above.</p>
+    </section>
+  </main>
 
   <script>
-    // Highlight active nav link on scroll
-    const sections = document.querySelectorAll('section[id], div[id]');
-    const links = document.querySelectorAll('.nav-links a');
+    const form = document.getElementById('bookmark-form');
+    const list = document.getElementById('bookmark-list');
+    const empty = document.getElementById('empty-state');
+    const navCount = document.getElementById('nav-count');
+    const search = document.getElementById('search');
 
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          links.forEach(l => l.classList.remove('active'));
-          const match = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
-          if (match) match.classList.add('active');
-        }
+    function load() {
+      return JSON.parse(localStorage.getItem('bookmarks') || '[]');
+    }
+
+    function save(bookmarks) {
+      localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+    }
+
+    function render(filter = '') {
+      const bookmarks = load();
+      const term = filter.toLowerCase();
+      const filtered = term
+        ? bookmarks.filter(b =>
+            b.title.toLowerCase().includes(term) ||
+            b.url.toLowerCase().includes(term) ||
+            (b.category || '').toLowerCase().includes(term)
+          )
+        : bookmarks;
+
+      navCount.textContent = `${bookmarks.length} saved`;
+      list.innerHTML = '';
+
+      if (filtered.length === 0) {
+        empty.style.display = 'block';
+        empty.textContent = term ? 'No results found.' : 'No bookmarks yet. Add one above.';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      filtered.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'bookmark-card';
+
+        const favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(b.url)}&sz=32`;
+
+        card.innerHTML = `
+          <img class="favicon" src="${favicon}" alt="" onerror="this.style.display='none'" />
+          <div class="bookmark-info">
+            <a href="${b.url}" target="_blank" rel="noopener noreferrer">${b.title}</a>
+            <span class="bookmark-url">${b.url}</span>
+            ${b.category ? `<span class="badge">${b.category}</span>` : ''}
+          </div>
+          <button class="delete-btn" data-id="${b.id}" title="Delete">&#10005;</button>
+        `;
+
+        list.appendChild(card);
       });
-    }, { threshold: 0.5 });
 
-    sections.forEach(s => observer.observe(s));
+      list.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const bookmarks = load().filter(b => b.id !== btn.dataset.id);
+          save(bookmarks);
+          render(search.value);
+        });
+      });
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const url = document.getElementById('url').value.trim();
+      const category = document.getElementById('category').value.trim();
+
+      const bookmarks = load();
+      bookmarks.unshift({ id: crypto.randomUUID(), title, url, category, addedAt: Date.now() });
+      save(bookmarks);
+      form.reset();
+      render(search.value);
+    });
+
+    search.addEventListener('input', () => render(search.value));
+
+    render();
   </script>
 
 </body>
