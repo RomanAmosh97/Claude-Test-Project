@@ -41,7 +41,7 @@
     <section class="list-section">
       <div class="list-header">
         <h2>Saved Bookmarks</h2>
-        <input type="text" id="search" placeholder="Search..." />
+        <input type="text" id="search" placeholder="Search by title..." />
       </div>
       <div id="bookmark-list"></div>
       <p id="empty-state">No bookmarks yet. Add one above.</p>
@@ -67,11 +67,7 @@
       const bookmarks = load();
       const term = filter.toLowerCase();
       const filtered = term
-        ? bookmarks.filter(b =>
-            b.title.toLowerCase().includes(term) ||
-            b.url.toLowerCase().includes(term) ||
-            (b.category || '').toLowerCase().includes(term)
-          )
+        ? bookmarks.filter(b => b.title.toLowerCase().includes(term))
         : bookmarks;
 
       navCount.textContent = `${bookmarks.length} saved`;
